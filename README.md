@@ -14,7 +14,7 @@ Resolvi traduzir algumas coisas para o Português e adaptar para minha realidade
   - [Swipe Card](https://github.com/bramkragten/swipe-card)
   - [browser-mod](https://github.com/thomasloven/hass-browser_mod)
 
-- Copie manualmente esse arquivos abaixo de <a href="https://github.com/valsesia/dashboard-HA">valsesia/dashboard-HA</a>
+- Copie manualmente esse arquivos abaixo de <a href="https://github.com/valsesia/dashboardHA">valsesia/dashboardHA</a>
 
   - ui-lovelace.yaml
   - button_card_templates (pasta)
