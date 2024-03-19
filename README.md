@@ -1,6 +1,6 @@
 # Dashboard Home Assistant
 
-Esse exemplo de Dashboard foi adaptado originalmente do repositório de Mattias - https://github.com/matt8707/hass-config/tree/master - o qual agradeço por compartilhar.
+Esse exemplo de Dashboard foi adaptado originalmente do repositório de Mattias - https://github.com/matt8707/hass-config/tree/master - o qual agradeço por compartilhar. Direitos autorais (c) 2022 Mattias Persson.
 Resolvi traduzir algumas coisas para o Português e adaptar para minha realidade.
 
 # Instalação
@@ -44,4 +44,3 @@ lovelace:
 ```
 - [Reiniciar](https://my.home-assistant.io/redirect/server_controls/) o Home Assistant
 - Selecionar o modo escuro e o [tema tablet](https://my.home-assistant.io/redirect/profile/) (dentro da pasta THEME) <- NÃO PULE ESSA ETAPA
-- 
