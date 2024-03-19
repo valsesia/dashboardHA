@@ -1,0 +1,44 @@
+# https://www.phoscon.de/en/conbee2
+# https://www.zigbee2mqtt.io/devices/MCCGQ11LM.html
+# https://www.zigbee2mqtt.io/guide/installation/02_docker.html#docker-on-synology-dsm-7-0
+
+mqtt:
+  sensor:
+    - name: portasala
+      state_topic: homeassistant/persistence/portasala
+
+automation:
+  - alias: portasala_count
+    id: '2878459556162'
+    mode: restart
+    trigger:
+      platform: state
+      entity_id:
+        - binary_sensor.1000e72240_1
+        # - binary_sensor.mailbox_reset_contact
+      from: 'off'
+      to: 'on'
+    condition: >
+      {% set now = as_timestamp(now()) %}
+      {% set last_triggered = as_timestamp(state_attr(this.entity_id, 'last_triggered'), default=now) %}
+      {{ (now - last_triggered) > 7 or 'reset' in trigger.entity_id }}
+    action:
+      service: mqtt.publish
+      data:
+        topic: homeassistant/persistence/portasala
+        payload_template: >
+          {{ iif('reset' in trigger.entity_id, 0, states('sensor.portasala') | int + 1) }}
+        retain: true
+
+  - alias: portasala_reset
+    id: '2878459556165'
+    mode: restart
+    trigger:
+      platform: time
+      at: '23:59:59'
+    action:
+      service: mqtt.publish
+      data:
+        topic: homeassistant/persistence/portasala
+        payload: 0
+        retain: true

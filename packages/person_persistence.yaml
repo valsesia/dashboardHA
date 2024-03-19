@@ -1,0 +1,60 @@
+homeassistant:
+  customize:
+    person.cadu:
+      entity_picture: /local/cadu2.png
+    device_tracker.iphone_de_cadu:
+      entity_picture: /local/device_tracker.svg
+    device_tracker.iphone_de_fernanda_patricia:
+      entity_picture: /local/device_tracker.svg
+    person.fer:
+      entity_picture: /local/fer1.png
+
+person:
+  - name: Cadu
+    id: cadu
+    device_trackers:
+      - device_tracker.iphone_de_cadu
+      - device_tracker.ic3_iphone_de_cadu #ios 
+
+  - name: Fer
+    id: fer
+    device_trackers:
+      - device_tracker.iphone_de_fernanda_patricia
+      - device_tracker.ic3_iphone_de_fernanda_patricia #ios
+      - device_tracker.iphone_de_fernanda_patricia_app
+
+mqtt:
+  sensor:
+    - name: cadu_ultima_mudanca
+      state_topic: homeassistant/persistence/cadu
+      value_template: >
+        {{ value | replace(' ', 'T') }}
+
+    - name: fer_ultima_mudanca
+      state_topic: homeassistant/persistence/fer
+      value_template: >
+        {{ value | replace(' ', 'T') }}
+
+automation:
+  - alias: person_home
+    id: '8423590985012'
+    mode: parallel
+    trigger:
+      platform: state
+      entity_id:
+        - person.cadu
+        - person.fer
+      from:
+        - home
+        - not_home
+      to:
+        - home
+        - not_home
+    action:
+      service: mqtt.publish
+      data:
+        topic_template: >
+          homeassistant/persistence/{{ trigger.to_state.name | lower }}
+        payload_template: >
+          {{ now() }}
+        retain: true
