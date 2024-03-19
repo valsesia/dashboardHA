@@ -1,0 +1,642 @@
+button_card_templates:
+  !include_dir_merge_named button_card_templates 
+
+views:      
+  - type: custom:grid-layout    
+    title: Home      
+    layout:                       
+      #default      
+      margin: 0 
+      grid-gap: var(--custom-layout-card-padding) 
+      grid-template-columns: repeat(4, 1fr) 0
+      grid-template-rows: 0 repeat(2, fit-content(100%)) 0fr
+      grid-template-areas: |            
+        "sidebar  .           .       .       ."  
+        "sidebar  vardagsrum  studio  sovrum  ."  
+        "sidebar  media       diversos  home    ."    
+        "sidebar  footer      footer  footer  ."           
+      mediaquery:                 
+        #phone     
+        "(max-width: 800px)": 
+          grid-gap: calc(var(--custom-layout-card-padding) * 1.7)  
+          grid-template-columns: 0 repeat(2, 1fr) 0
+          grid-template-rows: 0 repeat(5, fit-content(100%)) 0fr 
+          grid-template-areas: |
+            ".  .           .        ."    
+            ".  sidebar     sidebar  ."                  
+            ".  vardagsrum  sovrum   ."     
+            ".  studio      diversos   ." 
+            ".  media       home    ."                
+            ".  footer      footer   ."                 
+            ".  .           .        ."   
+        #portrait 
+        "(max-width: 1200px)":
+          grid-gap: var(--custom-layout-card-padding)  
+          grid-template-columns: repeat(3, 1fr) 0
+          grid-template-rows: 0 repeat(3, fit-content(100%)) 0fr  
+          grid-template-areas: |
+            "sidebar  .           .       ."   
+            "sidebar  vardagsrum  sovrum  ."
+            "sidebar  studio      diversos  ."   
+            "sidebar  media       home   ."              
+            "sidebar  footer      footer  ."
+            "sidebar  .           .       ."                           
+    cards:
+                   
+      #extra_styles fix, do not remove     
+      #also warn if theme is not set
+
+      - type: custom:button-card
+        view_layout:
+          grid-area: 1 / 2 / 2 / 5
+        name: SET THEME TO "tablet" IN PROFILE 
+        tap_action:
+          action: navigate
+          navigation_path: /profile
+        styles:
+          card:
+            - display: >
+                [[[
+                  return hass.themes.theme === 'tablet'
+                      ? 'none'
+                      : 'initial';
+                ]]]
+          name:
+            - z-index: 1    
+            - overflow: visible
+            - color: red
+            - font-weight: bolder
+            - font-size: xxx-large  
+            - background: yellow 
+
+      #################################################
+      #                                               #
+      #                    SIDEBAR                    #
+      #                                               # 
+      #################################################
+
+      - type: vertical-stack  
+        view_layout:    
+          grid-area: sidebar
+        cards:
+
+          - type: custom:button-card
+            entity: sensor.template_sidebar
+            template: sidebar
+ 
+          - type: conditional
+            conditions:
+              - entity: input_boolean.laundry_display
+                state: 'on'
+            card:
+              type: custom:button-card
+              entity: timer.laundry 
+              double_tap_action:
+                action: call-service
+                service: input_boolean.turn_off 
+                service_data:
+                  entity_id: input_boolean.laundry_display       
+              template: laundry
+
+      #################################################
+      #                                               #
+      #                  SALA DE ESTAR                #    
+      #                                               #
+      #################################################
+ 
+      - type: grid  
+        title: Sala de Estar  
+        view_layout:
+          grid-area: vardagsrum
+        columns: 2 
+        cards:
+                               
+          - type: custom:button-card
+            entity: switch.luzsala ## switch.sala_estar_group verificar esse grupo
+            name: Luz da Sala
+            template:
+              - light
+              - icon_hue
+          - type: custom:button-card
+            entity: switch.ledtv_paralelo
+            name: Led Tv
+            template:
+              - light
+              - icon_spot
+
+          - type: custom:button-card
+            entity: media_player.lg_tv_sala
+            name: Tv
+            state_display: >
+              [[[
+                if (variables.state === 'playing') {
+                    return 'Ligada';
+                }
+                if (variables.state === true) {
+                    return variables.translate_unknown;        
+                } 
+              ]]]
+            double_tap_action:
+              !include popup/tv_sala.yaml  
+            template:
+              - base
+              - icon_tv
+              - loader
+
+          - type: custom:button-card
+            entity: switch.luzsacada
+            name: Sacada 
+            double_tap_action:
+              !include popup/vardagsrum_balkong.yaml
+            template:
+              - base
+              - icon_hue
+              - loader     
+
+      #################################################
+      #                                               #
+      #                    Cozinha                    #
+      #                                               #
+      #################################################
+
+      - type: grid
+        title: Cozinha
+        view_layout:
+          grid-area: studio
+        columns: 2
+        cards:
+
+          - type: custom:button-card
+            entity: switch.luz_cozinha
+            name: Cozinha
+            template:
+              - light
+              - icon_hue
+
+          - type: custom:button-card
+            entity: switch.pendente_cozinha
+            name: Pendente
+            template:
+              - light
+              - icon_pendente
+
+          - type: custom:button-card
+            entity: switch.luzbancada
+            name: Bancada
+            # double_tap_action:
+            #   !include popup/studio_dator.yaml
+            template:
+              - base
+              - icon_led
+              # - loader
+              # - lock 
+            # variables:
+            #   lock: >
+            #     [[[
+            #       let lock = states['input_boolean.imac_lock'];
+            #       return !lock || lock.state;
+            #     ]]]
+            #   trigger: >
+            #     [[[
+            #       let trigger = states['script.home_leave']; 
+            #       return !trigger || trigger;
+            #     ]]]
+
+          - type: custom:button-card
+            entity: switch.ledcozinha_paralelo
+            name: Led Cozinha
+            # double_tap_action:
+            #   !include popup/studio_monitorer.yaml
+            template:
+              - base
+              - icon_led
+            #   - circle
+            #   - loader
+            # variables:
+            #   circle_input: >
+            #     [[[
+            #       let volume = states['sensor.monitors_volume'];
+            #       if (volume) return parseInt(volume.state);
+            #     ]]]
+            #   circle_input_unit: '%'
+
+      #################################################
+      #                                               #
+      #                    QUARTO                     #
+      #                                               #
+      #################################################
+
+      - type: grid           
+        title: Quarto
+        view_layout:
+          grid-area: sovrum
+        columns: 2 
+        cards:
+
+          - type: custom:button-card
+            entity: switch.luz_casal
+            name: Luz Casal
+            template:
+              - base
+              - icon_hue    
+
+          - type: custom:button-card
+            entity: climate.ar_casal
+            name: Casal
+            double_tap_action:
+              !include popup/sovrum_klimat.yaml
+            template:
+              - base
+              - icon_climate
+              - circle
+            variables:
+              circle_input: >
+                [[[
+                  if (entity) {
+                      return entity.state === 'cool'
+                          ? Math.round(entity.attributes.temperature).toString()
+                          : Math.round(entity.attributes.current_temperature).toString();
+                  }
+                ]]]
+              circle_input_unit: '°C'
+
+          - type: custom:button-card
+            entity: group.abajur_casal
+            name: Abajur Casal
+            template: 
+              - light
+              - icon_lamp
+              
+          # - type: custom:button-card
+          #   entity: light.abajurquartoesq
+          #   name: Abajur Esq
+          #   template: 
+          #     - base
+          #     - icon_lamp
+              
+          # - type: custom:button-card
+          #   entity: switch.ps5_635_power
+          #   name: Playstation
+          #   double_tap_action:
+          #     !include popup/sovrum_playstation.yaml 
+          #   template: 
+          #     - base
+          #     - icon_ps5
+          #     - loader
+
+
+          - type: custom:button-card
+            entity: media_player.lg_tv_casal       
+            name: "Tv Quarto"
+            state_display: >
+              [[[
+                if (variables.state === 'playing') {
+                    return 'Ligada';
+                }
+                if (variables.state === true) {
+                    return variables.translate_unknown;
+                }
+              ]]]
+            double_tap_action:
+              !include popup/sovrum_tv2.yaml  
+            template:
+              - base
+              - icon_tv
+              - loader 
+
+      #################################################
+      #                                               #
+      #                     MEDIA                     #
+      #                                               #
+      #################################################
+
+      - type: grid
+        title: Media
+        view_layout:
+          grid-area: media
+        columns: 1
+        cards:
+
+          - type: custom:swipe-card 
+            parameters:
+              speed: 550
+              spaceBetween: 40
+              threshold: 5
+            cards:
+       
+              - type: horizontal-stack
+                cards:
+
+                  - type: conditional
+                    conditions:
+                      - entity: select.conditional_media
+                        state_not: 'Fire TV 192.168.5.120'
+
+                      - entity: select.conditional_media
+                        state_not: 'Spotify Cadu'
+
+                      - entity: select.conditional_media
+                        state_not: 'Plex (Plex for Android (TV) - AFTKA)'
+
+                    card:
+                      type: custom:button-card
+                      entity: media_player.appletv_cadu
+                      name: Apple Tv
+                      tap_action:
+                        action: none
+                      template:
+                        - conditional_media
+                        - icon_apple_tv
+
+                  - type: conditional
+                    conditions:
+                      - entity: select.conditional_media
+                        state: ''
+                    card:
+                      type: custom:button-card
+                      entity: media_player.appletv_cadu
+                      triggers_update: sensor.youtube_watching
+                      template: 
+                        - conditional_media
+                        - icon_apple_tv
+
+                  - type: conditional
+                    conditions:
+                      - entity: select.conditional_media
+                        state: 'Fire TV 192.168.5.120'
+                    card:
+                      type: custom:button-card
+                      entity: media_player.fire_tv_192_168_5_120
+                      triggers_update: sensor.youtube_watching
+                      template:
+                        - conditional_media
+                        - icon_apple_tv
+
+                  - type: conditional
+                    conditions:
+                      - entity: select.conditional_media
+                        state: 'Spotify Cadu'
+                    card:
+                      type: custom:button-card
+                      entity: media_player.spotify_cadu
+                      template:
+                        - conditional_media
+                        - icon_spotify
+
+                  - type: conditional
+                    conditions:
+                      - entity: select.conditional_media
+                        state: 'Plex (Plex for Android (TV) - AFTKA)'
+                    card:
+                      type: custom:button-card
+                      entity: media_player.plex_plex_for_android_tv_aftka
+                      template:
+                        - conditional_media
+                        - icon_nest_mini
+
+              - type: grid
+                columns: 2
+                cards:
+
+                  - type: custom:button-card
+                    entity: media_player.appletv_cadu
+                    triggers_update: sensor.youtube_watching
+                    name: Casal
+                    template:
+                      - media
+                      - icon_apple_tv
+
+                  - type: custom:button-card
+                    entity: media_player.fire_tv_192_168_5_120
+                    triggers_update: sensor.youtube_watching
+                    name: FireTv
+                    template:
+                      - media
+                      - icon_apple_tv
+
+                  - type: custom:button-card
+                    entity: media_player.spotify_cadu
+                    name: Spotify
+                    template:
+                      - media
+                      - icon_spotify
+
+                  - type: custom:button-card
+                    entity: media_player.plex_plex_for_android_tv_aftka
+                    name: Plex
+                    template:
+                      - media
+                      - icon_plex
+
+      #################################################
+      #                                               #
+      #                    OUTROS                     #
+      #                                               #
+      #################################################
+
+      - type: grid
+        title: Diversos
+        view_layout:
+          grid-area: diversos
+        columns: 2
+        cards:
+
+          - type: custom:button-card
+            entity: light.abajurmeninas
+            name: Abajur Meninas
+            template:
+              - light
+              - icon_lamp
+
+          - type: custom:button-card
+            entity: switch.luz_aquario
+            name: "Luz Aquário"
+            double_tap_action:
+              !include popup/aquario.yaml
+            template:
+              - base
+              - icon_hue
+              - loader
+
+          - type: custom:button-card
+            entity: light.led_meninas
+            name: Led Meninas
+            template:
+              - light
+              - icon_led
+
+          - type: custom:button-card
+            entity: switch.entrada_sala
+            name: Entrada
+            template:  
+              - base
+              - icon_hall
+
+      #################################################
+      #                                               #
+      #                     HOME                      #
+      #                                               #
+      #################################################
+
+      - type: grid
+        title: Home
+        view_layout:
+          grid-area: home 
+        columns: 2
+        cards:
+
+          - type: custom:button-card 
+            entity: person.cadu
+            name: Cadu
+            triggers_update:
+              - sensor.cadu_ultima_mudanca
+            double_tap_action:
+              !include popup/home_cadu.yaml
+            variables:
+              retain: sensor.cadu_ultima_mudanca
+            template:
+              - person
+              - circle
+
+          - type: custom:button-card
+            entity: person.fer
+            name: Fer
+            triggers_update:
+              - sensor.fer_ultima_mudanca
+            double_tap_action: 
+              !include popup/home_fer.yaml
+            variables:
+              retain: sensor.fer_ultima_mudanca
+            template:
+              - person
+              - circle
+
+          - type: custom:button-card
+            #entity: script.home_leave
+            entity: switch.acendetudo
+            name: Acender Tudo
+            template:
+              - base
+              - icon_away
+
+          - type: custom:button-card
+            entity: script.home_arrive
+            name: Home
+            template:
+              - base
+              - icon_home
+
+      #################################################
+      #                                               #
+      #                    FOOTER                     #
+      #                                               #
+      #################################################
+
+      - type: horizontal-stack
+        view_layout:
+          grid-area: footer
+        cards:
+
+          - type: custom:button-card
+            name: >
+              <ha-icon icon="mdi:nas"></ha-icon> NAS
+            tap_action:
+              !include popup/footer_nas.yaml
+            triggers_update:
+              - update.nas_dsm_update
+              - sensor.nas_volume_1_status
+              - binary_sensor.nas_security_status
+              - sensor.disk_use_percent
+            variables:
+              notify: >
+                [[[
+                  let id = this._config.triggers_update;
+                  if (id.every(e => states[e]))
+                      return states[id[0]].state === 'on'
+                          ? 1
+                          : states[id[1]].state === 'background_scrubbing' ||
+                            states[id[2]].state === 'on' ||
+                            parseFloat(states[id[3]].state) >= 85;
+                ]]]
+            template: footer
+
+          - type: custom:button-card
+            entity: sensor.template_updates
+            name: >
+              <ha-icon icon="mdi:arrow-up-bold-circle-outline"></ha-icon> Atualizações
+            tap_action:
+              !include popup/footer_updates.yaml
+            variables:
+              notify: >
+                [[[
+                  return parseInt(entity?.state);  
+                ]]]
+            template: footer
+
+          - type: custom:button-card
+            name: >
+              <ha-icon icon="mdi:robot-vacuum-variant"></ha-icon> Städa
+            tap_action:
+              !include popup/footer_vacuum.yaml
+            triggers_update:
+              - sensor.date
+            variables:
+              notify: >
+                [[[
+                  let id = states['sensor.morty_last_clean_end'];
+                  if (id) return (Date.now() - Date.parse(id.state)) > 6048e5;
+                ]]]
+            template: footer 
+
+          - type: custom:button-card
+            name: >
+              <ha-icon icon="mdi:chart-line-variant"></ha-icon> Historik
+            tap_action: 
+              !include popup/footer_history.yaml
+            template: footer
+
+          - type: custom:button-card
+            name: >
+              <ha-icon icon="mdi:tablet"></ha-icon> Platta 
+            tap_action:
+              !include popup/footer_tablet.yaml
+            variables:
+              notify: >
+                [[[
+                  let id = states['binary_sensor.galaxy_tab_a_plugged_in'];
+                  if (id) return id.state === 'off';
+                ]]]
+            template: footer         
+
+          - type: custom:button-card
+            name: >
+              <ha-icon icon="mdi:router-wireless"></ha-icon> Router
+            tap_action:
+              !include popup/footer_router.yaml
+            triggers_update:
+              - update.unifi_dream_machine
+              - binary_sensor.template_udm_internet
+            variables:
+              notify: >
+                [[[
+                  let id = this._config.triggers_update;
+                  if (id.every(e => states[e]))
+                      return states[id[0]].state === 'on'
+                          ? 1
+                          : states[id[1]].state === 'off';
+                ]]]
+            template: footer 
+            
+  - !include lovelace/home.yaml   
+  - !include lovelace/cameras.yaml 
+  - !include lovelace/multimidia.yaml              
+  - !include lovelace/nespresso.yaml   
+  - !include lovelace/dispositivos1.yaml
+  - !include lovelace/ilumina.yaml
+  - !include lovelace/despertador.yaml
+  - !include lovelace/energia.yaml
+  - !include lovelace/monitora.yaml
+  - !include lovelace/controles_tv.yaml
+  - !include lovelace/climatizacao.yaml
+  - !include lovelace/raspberry.yaml      
+  - !include lovelace/clima.yaml  
