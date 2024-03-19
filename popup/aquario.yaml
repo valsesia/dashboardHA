@@ -1,0 +1,38 @@
+action: fire-dom-event
+browser_mod:
+  service: browser_mod.popup
+  data:
+    title: Aquário
+    card_mod:
+      style:
+        #popup header
+        .:
+    content:
+      type: vertical-stack
+      cards:
+
+        - type: entities
+          state_color: true
+          show_header_toggle: false
+          card_mod:
+            class: content
+          entities:
+
+            - entity: switch.luz_aquario
+              name: Luz do Aquário
+              secondary_info: last-changed
+
+            - entity: automation.aquario_liga
+              name: Liga Aquário
+            - entity: input_number.aquario_liga_hora
+              name: Hora Ligar Luz
+            - entity: input_number.aquario_liga_minuto
+              name: Minuto Ligar Luz
+            
+            - entity: automation.aquario_desliga
+              name: Desliga Aquário
+            - entity: input_number.aquario_desliga_hora
+              name: Hora Desligar Luz
+            - entity: input_number.aquario_desliga_minuto
+              name: Minuto Desligar Luz
+

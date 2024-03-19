@@ -1,0 +1,23 @@
+action: fire-dom-event
+browser_mod:
+  service: browser_mod.popup
+  data:
+    title: Sacada
+    card_mod:
+      style:
+        #popup header
+        .:
+    content:
+      type: vertical-stack
+      cards:
+        - type: entities
+          state_color: true
+          show_header_toggle: false
+          card_mod:
+            class: content
+          entities:
+
+            - entity: switch.luz_sacada
+              secondary_info: last-changed
+
+            - entity: automation.balcony_lights
