@@ -1,0 +1,148 @@
+
+    - unique_id: sidebar
+      state: template
+      attributes:
+        time: >
+          {% set hours = now().strftime('%H') %}
+          {% set minutes = now().strftime('%M') %}
+          <span class="time">
+            {{ hours }}<span class="time-colon">:</span>{{ minutes }}
+          </span>
+        date: >
+          <font color='#6a7377'><b>
+          {% if strptime(states('sensor.date'), '%Y-%m-%d').day != None %}
+          {% set days = ['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado', 'Domingo'] %}
+          {% set months = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+          'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'] %}
+            {{ days[now().weekday()] }}<br>
+            {{ strptime(states('sensor.date'), '%Y-%m-%d').day }} {{ months[now().month-1] }}
+          {% endif %}
+          </b></font>
+        greet: >
+          <b>
+          {% set time = now().hour %}
+          {% if time <= 1 %} Boa madrugada {{'\U0001F611'}}
+          {% elif time <= 3 %} Boa madrugada {{'\U0001F62A'}}
+          {% elif time <= 5 %} Boa madrugada {{'\U0001F634'}}
+          {% elif time <= 7 %} Bom dia {{'\U0001F4A9'}}
+          {% elif time <= 9 %} Bom dia {{'\u2615\uFE0F'}}
+          {% elif time <= 10 %} Bom dia {{'\U0001F642'}}
+          {% elif time <= 13 %} Boa tarde {{'\U0001F60A'}}
+          {% elif time <= 15 %} Boa tarde {{'\U0001F60E'}}
+          {% elif time <= 17 %} Boa tarde {{'\U0001F44B\U0001F3FB'}}
+          {% elif time <= 19 %} Boa noite {{'\U0001F44B\U0001F3FB'}}
+          {% elif time <= 22 %} Boa noite {{'\U0001F60C'}}
+          {% elif time <= 23 %} Boa noite {{'\U0001F974'}}
+          {% else %} Boa noite {{'\U0001F974'}}
+          {% endif %}
+          </b>
+        active: >
+          <b>
+          {% set lights = [
+            states.light.led_meninas,
+            states.light.lampada_nichos,
+            states.light.abajurmeninas_2,
+            states.light.abajurquartodir,
+            states.light.abajurquartoesq,
+            states.light.abajurmeninas,
+            states.light.abajur_estante_esc,
+            states.light.spotdir_esc
+            states.light.spotesq_esc_2,
+            states.light.smart_fita_led_dream_color_neon_rgb_ic
+            
+          ] %}
+
+          {% set devices = [
+            states.switch.luz_sala,
+            states.switch.spot_tv,
+            states.switch.spot_sofa,
+            states.switch.lavabo_switch_1,
+            states.switch.cozinha_switch_1,
+            states.switch.cozinha_switch_2,
+            states.switch.cozinha_switch_3,
+            switch.luzaquario,
+            states.media_player.lg_webos_tv_lk615bpsb,
+            states.media_player.carlos_s_lg_oled_webos_2021_tv,
+            states.climate.ar_casal,
+            states.climate.armeninas,
+            states.climate.escritorio_ac
+          ] %}
+
+          {% set lights_on = lights | selectattr('state','eq','on') | list %}
+          {% set lights_name = lights | selectattr('state','eq','on') | map(attribute='name') | join(', ') %}
+
+          {% set devices_on = devices | selectattr('state','search','(on|cool|fan_only|playing)') | list %}
+          {% set devices_name = devices_on | map(attribute='name') | join(', ') %}
+
+          {% if (lights_on | length == 0) and (devices_on | length > 0) %}
+            {{ devices_name | regex_replace(',([^,]*)$',' e\\1') }} estão ligados
+
+          {% elif (lights_on | length == 1) and (devices_on | length == 1) %}
+            {{ lights_name }} e {{devices_name }} estão ligados
+
+          {% elif (lights_on | length == 1) and (devices_on | length > 1) %}
+            {{ lights_name }}, {{ devices_name | regex_replace(',([^,]*)$',' e\\1') }} está ligado
+
+          {% elif (lights_on | length > 1) and (devices_on | length == 1) %}
+            {{ lights_on | length }} luzes e {{ devices_name }} está ligado
+
+          {% elif (lights_on | length > 1) and (devices_on | length > 1) %}
+            {{ lights_on | length }} luzes, {{ devices_name | regex_replace(',([^,]*)$',' e\\1') }} está ligado
+
+          {% elif (lights_on | length == 1) and (devices_on | length == 0) %}
+            {{ lights_name }} está ligado
+
+          {% elif (lights_on | length > 1) and (devices_on | length == 0) %}
+            {{ lights_on | length }} as luzes estão acesas
+
+          {% else %}
+            <font color='#6a7377'>Tudo está desligado</font>
+          {% endif %}
+          </b>
+        mailbox: >
+          {% set portasala = states('sensor.portasala') %}
+          {% if portasala | int(default=0) > 0 %}
+            {{ '\U0001F6AA' }} <font color='#6a7377'><b>Porta da Sala ({{ portasala }})</b></font>
+          {% endif %}
+        weather: >
+          {% set entity = 'weather.valsesia_home' %}
+          {% if not is_state(entity, 'unknown') %}
+            {% set temp = state_attr(entity, 'temperature') | round %}
+            {% set precip = state_attr(entity, 'forecast')[0]['precipitation'] | round %}
+              Temperatura {{ temp }}°C com {{ 'nenhum risco de chuva' if precip == 0
+              else precip | string + 'mm de chuva \u2614\uFE0F' }}
+          {% else %}
+            Não consigo ler a previsão do tempo...
+          {% endif %}
+        laundry: >
+          {% set start_time = state_attr('calendar.calendario_calendario', 'start_time') %}
+          {% set msg = state_attr('calendar.calendario_calendario', 'message') %}
+          {% if start_time != None %}
+            {% set time = as_timestamp(start_time) | timestamp_custom('%H:%M') %}
+            {% set hours = as_timestamp(start_time) | timestamp_custom('%H') | int(default=0) / 24 %}
+            {% set count = (as_timestamp(start_time) - as_timestamp(now())) / 86400 - hours %}
+            {% set day = strptime(start_time, '%Y-%m-%d %H:%M:%S').strftime('%A')
+            | replace('Monday', 'Segunda')
+            | replace('Tuesday', 'Terça')
+            | replace('Wednesday', 'Quarta')
+            | replace('Thursday', 'Quinta')
+            | replace('Friday', 'Sexta')
+            | replace('Saturday', 'Sábado')
+            | replace('Sunday', 'Domingo') %}
+            {% if count <= 0.0 %}
+              {{'\U0001F4C5'}} {{day}} {{ time }} - {{msg}}
+            {% elif count <= 1.0 %}
+              Amanhã: {{ time }} - {{msg}}
+            {% elif count <= 2.0 %}
+              2 dias: {{ time }} - {{msg}}
+            {% endif %}
+          {% endif %}
+        battery: >
+          {% set bateria_cadu = states('sensor.iphone_de_cadu_battery_level') %}
+          {% set bateria_fer = state_attr("device_tracker.iphone_de_fernanda_patricia", "battery")  %}
+          {% set entities = states.sensor 
+            | selectattr('entity_id', 'search', 'battery')
+            | rejectattr('entity_id', 'search', 'iphone_de_fernanda')
+            | map(attribute = 'entity_id') | list %}
+          iPhone Cadu - {{bateria_cadu}}%<br>
+          iPhone Fer - {{bateria_fer}}%
